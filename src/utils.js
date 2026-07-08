@@ -1,38 +1,23 @@
-/* =======================================================================
-         					Variables globales
-========================================================================= */
-let toutesLesStationsUniques = [];
-let stationsAffichees = [];
+// Variables globales d'origine
+export let toutesLesStationsUniques = [];
+export let stationsAffichees = [];
+
+// Configuration centrale pour simplifier les conditions de la fonction obtenirVisuelsStation
+const VISUELS = {
+    totem:  { logo: "src/assets/etotem-logo.png", photo: "src/assets/e-totem.jpg" },
+    nge:    { logo: "src/assets/nge-logo.png",   photo: "src/assets/NGE.jpg" },
+    nantes: { logo: "src/assets/NM.svg.webp",    photo: "src/assets/NMGS.jpg" },
+    nmgs:   { logo: "src/assets/NM.svg.webp",    photo: "src/assets/NMGS.jpg" },
+    default:{ logo: "src/assets/logo.jpg",       photo: "src/assets/photo.jpg" }
+};
 
 /* =======================================================================
      Fonction pour obtenir le logo et la photo selon l'aménageur
 ========================================================================= */
 const obtenirVisuelsStation = (nom) => {
     const nomMinuscule = (nom || "").toLowerCase();
-    
-    if (nomMinuscule.includes("totem")) {
-        return {
-            logo: "src/assets/etotem-logo.png", // Télécharge le logo dans assets
-            photo: "src/assets/e-totem.jpg" 
-        };
-
-    } else if (nomMinuscule.includes("nge")) {
-        return {
-            logo: "src/assets/nge-logo.png",   // Télécharge le logo dans assets
-            photo: "src/assets/NGE.jpg"         // Déjà fonctionnel !
-        };
-
-    } else if (nomMinuscule.includes("nmgs") || nomMinuscule.includes("nantes")) {
-        return {
-            logo: "src/assets/NM.svg.webp", // Télécharge le logo dans assets
-            photo: "src/assets/NMGS.jpg"
-        };
-    }
-    
-    return {
-        logo: "src/assets/logo.jpg", 
-        photo: "src/assets/photo.jpg"
-    };
+    const cle = Object.keys(VISUELS).find(k => nomMinuscule.includes(k)) || 'default';
+    return VISUELS[cle];
 };
 
 /* =======================================================================
@@ -40,24 +25,15 @@ const obtenirVisuelsStation = (nom) => {
 ========================================================================= */
 export const toutesLesDonnees = async () => {
     try {
-        const result = await fetch(
-            "https://data.paysdelaloire.fr/api/explore/v2.1/catalog/datasets/234400034_-bornes-de-recharge/records?select=nom_amenageur%2C%20adresse_station%2C%20horaires%2C%20nbre_pdc%2C%20tranche_puissance&limit=100&refine=condition_acces%3A%22Acc%C3%A8s%20libre%22&refine=horaires%3A%2224%2F7%22&refine=libelle_commune%3A%22Nantes%22",
-        );
+        const result = await fetch("https://data.paysdelaloire.fr/api/explore/v2.1/catalog/datasets/234400034_-bornes-de-recharge/records?select=nom_amenageur%2C%20adresse_station%2C%20horaires%2C%20nbre_pdc%2C%20tranche_puissance&limit=100&refine=condition_acces%3A%22Acc%C3%A8s%20libre%22&refine=horaires%3A%2224%2F7%22&refine=libelle_commune%3A%22Nantes%22");
         const data = await result.json();
 
-        const stationsUniques = [];
         const nomsVisites = new Set();
-
-        data.results.forEach((station) => {
+        toutesLesStationsUniques = data.results.filter(station => {
             const doublonKiller = station.nom_amenageur?.trim();
-
-            if (!nomsVisites.has(doublonKiller)) {
-                nomsVisites.add(doublonKiller);
-                stationsUniques.push(station);
-            }
+            return nomsVisites.has(doublonKiller) ? false : nomsVisites.add(doublonKiller);
         });
 
-        toutesLesStationsUniques = stationsUniques;
         afficherListeStations(toutesLesStationsUniques);
         activerEcouteurs();
     } catch (err) {
@@ -69,94 +45,89 @@ export const toutesLesDonnees = async () => {
       Fonction réutilisable pour afficher les stations à droite
 ========================================================================= */
 export const afficherListeStations = (liste) => {
-    const stationsListe = document.querySelector(".stations-liste");
-    stationsListe.innerHTML = "";
+    const stationsListe = document.getElementById("liste-stations");
+    stationsListe.innerHTML = liste.length ? "" : "<p style='padding: 10px;'>Aucune station ne correspond à votre recherche.</p>";
     stationsAffichees = liste;
 
-    if (liste.length === 0) {
-        stationsListe.innerHTML = "<p style='padding: 10px;'>Aucune station ne correspond à votre recherche.</p>";
-        return;
-    }
-
     liste.forEach((element, index) => {
-        let classeBordure = "bord-violet";
-        if (index % 3 === 1) classeBordure = "bord-vert";
-        if (index % 3 === 2) classeBordure = "bord-jaune";
-
         const carteStation = `
-      		<div class="station-carte ${classeBordure}" data-index="${index}">
-       		 	<h3>${element.nom_amenageur || "Nom inconnu"}</h3>
-        		<p>${element.adresse_station}</p>
-        		<small class="badge-puissance">${element.tranche_puissance || "Puissance non spécifiée"}</small>
-      		</div>`;
+            <div class="carte bord-${index % 3}" data-index="${index}">
+                <h3>${element.nom_amenageur || "Nom inconnu"}</h3>
+                <p>${element.adresse_station}</p>
+                <span class="badge-puissance">${element.tranche_puissance || "Puissance non spécifiée"}</span>
+            </div>`;
         stationsListe.insertAdjacentHTML("beforeend", carteStation);
     });
 };
 
 /* =======================================================================
-             Gestion des addEventListener
+             Gestion des addEventListener (Tranches de Puissance)
 ========================================================================= */
-const activerEcouteurs = () => {
-    const stationsListe = document.querySelector(".stations-liste");
-    const mainStation = document.querySelector(".main-station");
+export const activerEcouteurs = () => {
+    const barreRecherche = document.getElementById("recherche");
     const filtrePuissance = document.getElementById("filtre-puissance");
-    const barreRecherche = document.getElementById("filtre-recherche");
 
-    // 1. Event click : Affiche le détail dans la carte principale
-    stationsListe.addEventListener("click", (event) => {
-        const carteCliquee = event.target.closest(".station-carte");
+    const filtrerEtAfficher = () => {
+        const saisie = barreRecherche.value.toLowerCase().trim();
+        const selection = filtrePuissance.value;
 
-        if (carteCliquee) {
-            const index = carteCliquee.dataset.index;
-            const stationSelectionnee = stationsAffichees[index];
-            const visuels = obtenirVisuelsStation(stationSelectionnee.nom_amenageur);
-
-            mainStation.innerHTML = `
-                <h2>${stationSelectionnee.nom_amenageur || "Nom inconnu"}</h2>
-                
-                <div class="visuels-station-container">
-                    <div class="logo-amenageur-wrapper">
-                        <img src="${visuels.logo}" alt="Logo ${stationSelectionnee.nom_amenageur}">
-                    </div>
-                    <div class="image-station">
-                        <img src="${visuels.photo}" alt="Photo de la station">
-                    </div>
-                </div>
-
-                <p><strong>Adresse : </strong> ${stationSelectionnee.adresse_station || "Non renseignée"}</p>
-                <p><strong>Horaires : </strong> ${stationSelectionnee.horaires || "Non renseignés"}</p>
-                <p><strong>Nombre de prises : </strong> ${stationSelectionnee.nbre_pdc || "Inconnu"}</p>
-                <p><strong>Puissance :</strong> ${stationSelectionnee.tranche_puissance || "Non renseignée"}</p>
-            `;
-        }
-    });
-
-    // 2. Recherche dynamique
-    barreRecherche.addEventListener("input", (event) => {
-        const saisie = event.target.value.toLowerCase().trim();
         const stationsFiltrees = toutesLesStationsUniques.filter((station) => {
-            const nomAmenageur = (station.nom_amenageur || "").toLowerCase();
-            const adresseStation = (station.adresse_station || "").toLowerCase();
-            return nomAmenageur.includes(saisie) || adresseStation.includes(saisie);
-        });
-        afficherListeStations(stationsFiltrees);
-    });
+            const nom = (station.nom_amenageur || "").toLowerCase();
+            const adresse = (station.adresse_station || "").toLowerCase();
+            
+            // Extrait le premier nombre trouvé dans la chaîne (ex: "AC (de 3,7 à 7,4 kW)" -> 3.7)
+            const textePuissance = (station.tranche_puissance || "").replace(",", ".");
+            const puissanceBorne = parseFloat(textePuissance.match(/[\d.]+/)) || 0;
 
-    // 3. Filtre puissance
-    filtrePuissance.addEventListener("change", (event) => {
-        const valeurSelectionnee = event.target.value;
-        if (valeurSelectionnee === "all") {
-            afficherListeStations(toutesLesStationsUniques);
-        } else {
-            const stationsFiltrees = toutesLesStationsUniques.filter((station) => {
-                const puissanceText = station.tranche_puissance || "";
-                if (valeurSelectionnee === "3.7") return puissanceText.includes("3,7");
-                if (valeurSelectionnee === "7.4") return puissanceText.includes("7,4");
-                if (valeurSelectionnee === "22") return puissanceText.includes("22");
-                if (valeurSelectionnee === "50") return puissanceText.includes("50") || puissanceText.includes("supérieure");
-                return false;
-            });
-            afficherListeStations(stationsFiltrees);
-        }
+            const matchTexte = nom.includes(saisie) || adresse.includes(saisie);
+            
+            // Logique de filtrage par tranches / intervalles
+            let matchPuissance = false;
+
+            if (selection === "all") {
+                matchPuissance = true;
+            } else if (selection === "3.7") {
+                // Inférieure ou égale à 3.7 kW
+                matchPuissance = puissanceBorne <= 3.7;
+            } else if (selection === "7.4") {
+                // Supérieure à 3.7 kW ET inférieure ou égale à 7.4 kW
+                matchPuissance = puissanceBorne > 3.7 && puissanceBorne <= 7.4;
+            } else if (selection === "22") {
+                // Supérieure à 7.4 kW ET inférieure ou égale à 22 kW
+                matchPuissance = puissanceBorne > 7.4 && puissanceBorne <= 22;
+            } else if (selection === "50") {
+                // Supérieure à 22 kW
+                matchPuissance = puissanceBorne > 22;
+            }
+
+            return matchTexte && matchPuissance;
+        });
+
+        afficherListeStations(stationsFiltrees);
+    };
+
+    barreRecherche.addEventListener("input", filtrerEtAfficher);
+    filtrePuissance.addEventListener("change", filtrerEtAfficher);
+
+    // Gestion du clic pour afficher le détail à gauche
+    document.getElementById("liste-stations").addEventListener("click", (event) => {
+        const carteCliquee = event.target.closest(".carte");
+        if (!carteCliquee) return;
+
+        const station = stationsAffichees[carteCliquee.dataset.index];
+        const visuels = obtenirVisuelsStation(station.nom_amenageur);
+
+        document.getElementById("details-station").innerHTML = `
+            <h2>${station.nom_amenageur || "Nom inconnu"}</h2>
+            <div id="visuels" class="visuels-station-container">
+                <img class="img-photo" src="${visuels.photo}" alt="Photo">
+                <img class="img-logo" src="${visuels.logo}" alt="Logo">
+            </div>
+            <div id="infos">
+                <p><strong>Adresse : </strong> ${station.adresse_station || "—"}</p>
+                <p><strong>Horaires : </strong> ${station.horaires || "—"}</p>
+                <p><strong>Nombre de prises : </strong> ${station.nbre_pdc || "—"}</p>
+                <p><strong>Puissance :</strong> ${station.tranche_puissance || "—"}</p>
+            </div>`;
     });
 };

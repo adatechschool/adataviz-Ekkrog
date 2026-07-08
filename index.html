@@ -2,152 +2,67 @@
 <html lang="fr">
     <head>
         <meta charset="UTF-8" />
-        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <link href="./src/style.css" rel="stylesheet" />
-        <title>adataviz</title>
+        <title>Bornes de Recharge Nantes</title>
     </head>
     <body>
-        <div class="main-container">
-            <!-- =======================================================================
-											En tête
-		 ======================================================================= -->
 
+        <div class="main-container">
+
+            <!-- ====================================================
+                                        HEADER
+            ======================================================= -->
             <header class="header">
-                <h1>
-                    Bornes de recharge pour véhicules électriques à Nantes 🔌
-                </h1>
+                <h1>Stations de recharge pour véhicules électriques à Nantes 🔌</h1>
             </header>
 
-            <!-- ======================================================================
-										Station selectionnée 
-			================================================================== -->
 
+            <!-- =====================================================
+                                        MAIN
+            ==========================================================-->
+
+            <!-- Carte principale -->
             <main class="stations-cartes">
-                <section class="main-station">
-                    <h2>Nom de la station</h2>
-
-                    <div class="visuels-station-container">
-                        <div class="logo-amenageur-wrapper">
-                            <span
-                                style="
-                                    color: #6c757d;
-                                    font-weight: bold;
-                                    font-size: 0.85rem;
-                                    text-align: center;
-                                "
-                                >LOGO AMÉNAGEUR</span
-                            >
-                        </div>
-                        <div class="image-station">
-                            <img
-                                src="https://images.unsplash.com/photo-1563720223185-11003d516935?w=500&auto=format&fit=crop&q=80"
-                                alt="Sélectionnez une station"
-                            />
-                        </div>
-                    </div>
-
-                    <p><strong>Adresse : </strong></p>
-                    <p><strong>Horaires : </strong></p>
-                    <p><strong>Nombre de prises : </strong></p>
-                    <p><strong>Puissance :</strong></p>
+                <section id="details-station" class="main-station">
+                    <h2>Sélectionnez une station</h2>
+                    <div id="visuels" class="visuels-station"></div>
+                    <div id="infos"></div>
                 </section>
 
-                <!-- =============================================================
-										Autres stations
-			================================================================== -->
-
+                <!-- Autres stations -->
                 <section class="stations-droite">
                     <div class="filtres">
-                        <h2>Autres stations</h2>
-
+                        <h2>Filtrer les stations :</h2>
                         <div class="filtres-gestion">
-                            <!-- 	Barre de recherche 		-->
-                            <!--  ajouter  submit --->
-                            <div class="barre-recherche">
-                                <input
-                                    type="search"
-                                    id="filtre-recherche"
-                                    placeholder="Rechercher une station..."
-                                />
-                            </div>
-
-                            <!-- 	Filtre par puissance (kw)	-->
-
-                            <div class="puissance-charge">
-                                <select id="filtre-puissance">
-                                    <option value="all">
-                                        Puissance de charge
-                                    </option>
-                                    <option value="3.7">3.7 kW (Lente)</option>
-                                    <option value="7.4">
-                                        7.4 kW (Standard)
-                                    </option>
-                                    <option value="22">
-                                        22 kW (Accélérée)
-                                    </option>
-                                    <option value="50">50 kW+ (Rapide)</option>
-                                </select>
-                            </div>
+                            <input
+                                type="search"
+                                id="recherche"
+                                placeholder="Rechercher une station..."
+                            />
+                            <select id="filtre-puissance">
+                                <option value="all">
+                                    Toutes les puissances
+                                </option>
+                                <option value="3.7">3.7 kW</option>
+                                <option value="7.4">7.4 kW</option>
+                                <option value="22">22 kW</option>
+                                <option value="50">50 kW+</option>
+                            </select>
                         </div>
                     </div>
-
-                    <div class="stations-liste">
-                        <div class="station-carte bord-violet">
-                            <h3>NGE - Parking Adam</h3>
-                            <p>11b Rue des Marchandises, Nantes 44200 France</p>
-                        </div>
-
-                        <div class="station-carte bord-vert">
-                            <h3>NMGS - Parking Decré-Bouffay</h3>
-                            <p>Rue du Moulin, Nantes 44000 France</p>
-                        </div>
-
-                        <div class="station-carte bord-jaune">
-                            <h3>NMGS - Parking Talensac</h3>
-                            <p>Place Saint Similien, Nantes 44000 France</p>
-                        </div>
-
-                        <div class="station-carte bord-violet">
-                            <h3>NGE - Parking Cathédrale</h3>
-                            <p>Rue Sully, Nantes 44000 France</p>
-                        </div>
-
-                        <div class="station-carte bord-jaune">
-                            <h3>NMGS - Parking Bretagne</h3>
-                            <p>Place de Bretagne, Nantes 44000 France</p>
-                        </div>
-
-                        <div class="station-carte bord-vert">
-                            <h3>NMGS - Parking Feydeau</h3>
-                            <p>
-                                Cours Commandant d'Estienne d'Orves, Nantes
-                                44000 France
-                            </p>
-                        </div>
-                    </div>
+                    <div id="liste-stations" class="stations-liste"></div>
                 </section>
             </main>
 
-            <!-- ====================================================================
-									Bas de page
-		=========================================================================  -->
-
-            <footer class="carte-incrustation">
+            <footer class="carte-incrustation glass-panel">
                 <iframe
-                    src="https://data.paysdelaloire.fr/explore/embed/dataset/234400034_-bornes-de-recharge/map/?disjunctive.puissance_nominale&refine.libelle_commune=Nantes&location=11,47.23892,-1.47526&basemap=jawg.streets&static=false&datasetcard=false&scrollWheelZoom=true"
-                    width="400"
-                    height="300"
+                    src="https://data.paysdelaloire.fr/explore/embed/dataset/234400034_-bornes-de-recharge/map/?refine.libelle_commune=Nantes"
                     frameborder="0"
                 ></iframe>
             </footer>
         </div>
 
-        <div id="app"></div>
-        <script type="module" src="/src/main.js"></script>
+        <script type="module" src="./src/main.js"></script>
     </body>
 </html>
-
-<!-- =====================================================================================
-									The end
-================================================================================= -->
