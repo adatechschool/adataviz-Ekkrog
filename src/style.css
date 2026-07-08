@@ -1,0 +1,353 @@
+/* ==========================================================================
+                        PALETTE DE COULEURS DE LA MAQUETTE 
+   ========================================================================== */
+:root {
+
+    /* Couleurs principales */
+    --bg-page: #153D83;
+    --bg-header: #24294F;
+
+    --panel-left: #43246D;
+    --panel-right: #293346;
+
+    --card: #1F2025;
+    --card-hover: #292B31;
+
+    /* Dégradés */
+    --gradient-page: linear-gradient(
+        135deg,
+        #14418A 0%,
+        #2B2D71 45%,
+        #43256E 100%
+    );
+
+    --gradient-panel: linear-gradient(
+        135deg,
+        #43256E 0%,
+        #33295F 100%
+    );
+
+    --gradient-right: linear-gradient(
+        135deg,
+        #2E3548 0%,
+        #243042 100%
+    );
+
+    /* Couleurs d'accent */
+    --accent-blue: #256DFF;
+    --accent-purple: #7B12F5;
+    --accent-pink: #FF6AA8;
+
+    /* Texte */
+    --text-main: #F5F5F5;
+    --text-secondary: #C4C7D2;
+    --text-muted: #8A90A8;
+
+    /* Bordures */
+    --border: rgba(255,255,255,.08);
+
+    --radius: 18px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+ background: var(--gradient-page);
+  color: var(--text-main);
+  padding: 20px;
+  min-height: 100vh;
+}
+
+.main-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* ==========================================================================
+                                     EN-TÊTE
+   ========================================================================== */
+.header{
+    background: var(--bg-header);
+    border-radius: 18px;
+    border:none;
+    box-shadow:
+        inset 0 1px rgba(255,255,255,.05),
+        0 12px 30px rgba(0,0,0,.25);
+}
+
+.header h1{
+    color:#D8E8FF;
+    background:none;
+    -webkit-text-fill-color:initial;
+}
+
+/* ==========================================================================
+                        DISPOSITION PRINCIPALE CÔTE À CÔTE
+   ========================================================================== */
+.stations-cartes {
+  display: flex;
+  flex-direction: row;
+  gap: 25px;
+  align-items: flex-start;
+  width: 100%;
+}
+
+/* ==========================================================================
+                     PANNEAU DE DÉTAILS (GAUCHE) - AGRANDI
+   ========================================================================== */
+.main-station {
+  flex: 1.4; /* Carte principale plus large */
+  background: var(--bg-card-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 25px;
+  border-radius: var(--border-radius);
+  border: var(--glass-border);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  position: sticky;
+  top: 20px;
+}
+
+.main-station{
+    background: var(--gradient-panel);
+    border:none;
+    box-shadow:0 15px 35px rgba(0,0,0,.35);
+}
+
+/* Visuels : Image à 80% et Logo à 20% */
+.visuels-station-container {
+  display: flex;
+  flex-direction: row;
+  gap: 15px;
+  margin-bottom: 25px;
+  height: 220px;
+}
+
+/* Petit logo (20%) */
+.logo-amenageur-wrapper {
+  flex: 2; 
+  background-color: var(--bg-dark-panel);
+  padding: 12px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.logo-amenageur-wrapper img {
+  max-height: 90%;
+  max-width: 90%;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+}
+
+/* Grosse photo (80%) */
+.image-station {
+  flex: 8; 
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.image-station img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.main-station p {
+  margin-bottom: 15px;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: #e2e0eb;
+}
+
+.main-station p strong {
+  color: var(--cyan-neon);
+}
+
+/* ==========================================================================
+                        PANNEAU DES FILTRES ET LISTE (DROITE)
+   ========================================================================== */
+.stations-droite {
+  flex: 1.1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.filtres {
+  background: var(--bg-card-glass);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 20px;
+  border-radius: var(--border-radius);
+  border: var(--glass-border);
+}
+
+.filtres h2 {
+  font-size: 1.2rem;
+  margin-bottom: 15px;
+  color: var(--text-main);
+}
+
+.filtres-gestion {
+  display: flex;
+  gap: 15px;
+}
+
+.barre-recherche, .puissance-charge {
+  flex: 1;
+}
+
+.filtres-gestion input, .filtres-gestion select {
+  width: 100%;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  color: white;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.filtres-gestion input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.filtres-gestion input:focus, .filtres-gestion select:focus {
+  border-color: var(--cyan-neon);
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+}
+
+/* Option de sélection pour le thème sombre */
+.filtres-gestion select option {
+  background-color: #15102a;
+  color: white;
+}
+
+/* --- Liste des cartes de droite --- */
+.stations-liste {
+  max-height: 520px;
+  overflow-y: auto;
+  padding-right: 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.station-carte {
+  background: var(--bg-card-glass);
+  padding: 18px;
+  border-radius: 12px;
+  border: var(--glass-border);
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
+  border-left: 5px solid transparent; 
+}
+
+.station-carte:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* État actif au clic */
+.station-carte.active {
+  background: var(--bg-card-glass-active);
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  border-right: 1px solid rgba(255, 255, 255, 0.15);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.station-carte h3 {
+  font-size: 1.1rem;
+  margin-bottom: 6px;
+  color: var(--text-main);
+}
+
+.station-carte p {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+.badge-puissance {
+  display: inline-block;
+  background-color: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  color: var(--cyan-neon);
+  font-weight: 600;
+}
+
+/* ==========================================================================
+                     BORDURES NÉONS ISSUES DE LA MAQUETTE
+   ========================================================================== */
+.bord-violet { 
+  border-left-color: var(--cyan-neon); /* Devient cyan comme la maquette */
+}
+.bord-violet:hover {
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.15);
+}
+
+.bord-vert { 
+  border-left-color: var(--vert-neon); 
+}
+.bord-vert:hover {
+  box-shadow: 0 0 15px rgba(57, 255, 20, 0.15);
+}
+
+.bord-jaune { 
+  border-left-color: var(--jaune-neon); 
+}
+.bord-jaune:hover {
+  box-shadow: 0 0 15px rgba(255, 222, 0, 0.15);
+}
+
+/* ==========================================================================
+                                BAS DE PAGE
+   ========================================================================== */
+.carte-incrustation {
+  margin-top: 35px;
+  width: 100%;
+}
+
+.carte-incrustation iframe {
+  width: 100%;
+  border-radius: var(--border-radius);
+  border: var(--glass-border);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+
+/* Personnalisation Scrollbar futuriste */
+.stations-liste::-webkit-scrollbar {
+  width: 6px;
+}
+.stations-liste::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+.stations-liste::-webkit-scrollbar-thumb:hover {
+  background-color: var(--cyan-neon);
+}
+
+/* Responsive */
+@media (max-width: 950px) {
+  .stations-cartes {
+    flex-direction: column;
+  }
+  .visuels-station-container {
+    flex-direction: column;
+    height: auto;
+  }
+}
