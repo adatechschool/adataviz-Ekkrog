@@ -1,53 +1,102 @@
 // Variables globales d'origine
-export let toutesLesStationsUniques = [];
+export let stationsUniques = [];
 export let stationsAffichees = [];
 
 // Configuration centrale pour simplifier les conditions de la fonction obtenirVisuelsStation
 const VISUELS = {
-    totem:  { logo: "src/assets/etotem-logo.png", photo: "src/assets/e-totem.jpg" },
-    nge:    { logo: "src/assets/nge-logo.png",   photo: "src/assets/NGE.jpg" },
-    nantes: { logo: "src/assets/NM.svg.webp",    photo: "src/assets/NMGS.jpg" },
-    nmgs:   { logo: "src/assets/NM.svg.webp",    photo: "src/assets/NMGS.jpg" },
-    default:{ logo: "src/assets/logo.jpg",       photo: "src/assets/photo.jpg" }
+    totem: {
+        logo: "src/assets/etotem-logo.png",
+        photo: "src/assets/e-totem.jpg",
+    },
+    nge: { logo: "src/assets/nge-logo.png", photo: "src/assets/NGE.jpg" },
+    nantes: { logo: "src/assets/NM.svg.webp", photo: "src/assets/NMGS.jpg" },
+    nmgs: { logo: "src/assets/NM.svg.webp", photo: "src/assets/NMGS.jpg" },
+    default: { logo: "src/assets/logo.jpg", photo: "src/assets/photo.jpg" },
 };
 
 /* =======================================================================
      Fonction pour obtenir le logo et la photo selon l'aménageur
 ========================================================================= */
-const obtenirVisuelsStation = (nom) => {
+const obtenirVisuels = (nom) => {
     const nomMinuscule = (nom || "").toLowerCase();
-    const cle = Object.keys(VISUELS).find(k => nomMinuscule.includes(k)) || 'default';
+    const cle =
+        Object.keys(VISUELS).find((k) => nomMinuscule.includes(k)) || "default";
     return VISUELS[cle];
 };
 
 /* =======================================================================
-       Fonction principale appelée au chargement pour récupérer l'API
+    Fonction principale appelée au chargement pour récupérer l'API
 ========================================================================= */
-export const toutesLesDonnees = async () => {
+
+// Utilise la pagination (offset) car l'API plafonne à 100 résultats par appel : on enchaîne les appels jusqu'à avoir tout récupéré.
+
+export const datAPI = async () => {
     try {
-        const result = await fetch("https://data.paysdelaloire.fr/api/explore/v2.1/catalog/datasets/234400034_-bornes-de-recharge/records?select=nom_amenageur%2C%20adresse_station%2C%20horaires%2C%20nbre_pdc%2C%20tranche_puissance&limit=100&refine=condition_acces%3A%22Acc%C3%A8s%20libre%22&refine=horaires%3A%2224%2F7%22&refine=libelle_commune%3A%22Nantes%22");
-        const data = await result.json();
+        const toutesLesReponses = [];
+        const tailleParPage = 100;
+        let decalage = 0;
+        let total = Infinity;
 
-        const nomsVisites = new Set();
-        toutesLesStationsUniques = data.results.filter(station => {
-            const doublonKiller = station.nom_amenageur?.trim();
-            return nomsVisites.has(doublonKiller) ? false : nomsVisites.add(doublonKiller);
-        });
+        while (decalage < total) {
+            const url = `https://data.paysdelaloire.fr/api/explore/v2.1/catalog/datasets/234400034_-bornes-de-recharge/records?select=nom_amenageur%2C%20adresse_station%2C%20horaires%2C%20nbre_pdc%2C%20tranche_puissance&limit=${tailleParPage}&offset=${decalage}&refine=condition_acces%3A%22Acc%C3%A8s%20libre%22&refine=horaires%3A%2224%2F7%22&refine=libelle_commune%3A%22Nantes%22`;
 
-        afficherListeStations(toutesLesStationsUniques);
-        activerEcouteurs();
-    } catch (err) {
-        console.error("Erreur lors de la récupération des données :", err.message);
+            const result = await fetch(url);
+            const donnees = await result.json();
+
+            toutesLesReponses.push(...donnees.results);
+            total = donnees.total_count;
+            decalage += tailleParPage;
+        }
+
+        return { results: toutesLesReponses };
+    } catch (error) {
+        console.log("erreur lors de la récupération des données");
     }
 };
 
-/* =======================================================================
-      Fonction réutilisable pour afficher les stations à droite
-========================================================================= */
+export const toutesLesDonnees = async () => {
+    try {
+        const donnees = await datAPI();
+        const noDoublon = new Set(); /*stock des valeurs uniques, pas de doublons, à la différence de map() qui stocke des valeurs clé */
+
+        const resultat = donnees.results.filter((station) => {
+
+            const nomAmenageur = station.nom_amenageur?.trim(); 
+            /* Le "?" sert a éviter le plantage en cas d'absence de valeur 
+            */
+
+            if (noDoublon.has(nomAmenageur)){
+                return false 
+            }
+            noDoublon.add(nomAmenageur)
+            return true
+                
+            /* ajoute le nom de la station au set () / nomsVisites si le nom_amenageur n'est pas un doublon */
+        });
+
+        stationsUniques = resultat;
+        return resultat;
+
+    } catch (error) {
+        console.log("erreur lors de la récupération des données");
+    }
+};
+
+/* ==========================================================
+                    Fonction réutilisable
+============================================================ */
+
 export const afficherListeStations = (liste) => {
     const stationsListe = document.getElementById("liste-stations");
-    stationsListe.innerHTML = liste.length ? "" : "<p style='padding: 10px;'>Aucune station ne correspond à votre recherche.</p>";
+    stationsListe.innerHTML = liste.length
+        ? ""
+        : "<p style='padding: 10px;'>Aucune station ne correspond à votre recherche.</p>";
     stationsAffichees = liste;
+
+    const compteur = document.getElementById("compteur-resultats");
+    if (compteur) {
+        compteur.textContent = `${liste.length} station${liste.length > 1 ? "s" : ""} trouvée${liste.length > 1 ? "s" : ""}`;
+    }
 
     liste.forEach((element, index) => {
         const carteStation = `
@@ -60,9 +109,9 @@ export const afficherListeStations = (liste) => {
     });
 };
 
-/* =======================================================================
+/* ==========================================================
              Gestion des addEventListener (Tranches de Puissance)
-========================================================================= */
+============================================================ */
 export const activerEcouteurs = () => {
     const barreRecherche = document.getElementById("recherche");
     const filtrePuissance = document.getElementById("filtre-puissance");
@@ -71,16 +120,22 @@ export const activerEcouteurs = () => {
         const saisie = barreRecherche.value.toLowerCase().trim();
         const selection = filtrePuissance.value;
 
-        const stationsFiltrees = toutesLesStationsUniques.filter((station) => {
+        const stationsFiltrees = stationsUniques.filter((station) => {
             const nom = (station.nom_amenageur || "").toLowerCase();
             const adresse = (station.adresse_station || "").toLowerCase();
-            
+
             // Extrait le premier nombre trouvé dans la chaîne (ex: "AC (de 3,7 à 7,4 kW)" -> 3.7)
-            const textePuissance = (station.tranche_puissance || "").replace(",", ".");
-            const puissanceBorne = parseFloat(textePuissance.match(/[\d.]+/)) || 0;
+            const textePuissance = (station.tranche_puissance || "").replace(
+                ",",
+                ".",
+            );
+            const puissanceBorne =
+                parseFloat(textePuissance.match(/[\d.]+/)) || 0; /*  
+                C'est du regex, ca recherche un caractère qui est soit un chiffre "\d", soit un point ".", plusieurs fois à la suite "+" 
+                */
 
             const matchTexte = nom.includes(saisie) || adresse.includes(saisie);
-            
+
             // Logique de filtrage par tranches / intervalles
             let matchPuissance = false;
 
@@ -110,14 +165,16 @@ export const activerEcouteurs = () => {
     filtrePuissance.addEventListener("change", filtrerEtAfficher);
 
     // Gestion du clic pour afficher le détail à gauche
-    document.getElementById("liste-stations").addEventListener("click", (event) => {
-        const carteCliquee = event.target.closest(".carte");
-        if (!carteCliquee) return;
+    document
+        .getElementById("liste-stations")
+        .addEventListener("click", (event) => {
+            const carteCliquee = event.target.closest(".carte");
+            if (!carteCliquee) return;
 
-        const station = stationsAffichees[carteCliquee.dataset.index];
-        const visuels = obtenirVisuelsStation(station.nom_amenageur);
+            const station = stationsAffichees[carteCliquee.dataset.index];
+            const visuels = obtenirVisuels(station.nom_amenageur);
 
-        document.getElementById("details-station").innerHTML = `
+            document.getElementById("details-station").innerHTML = `
             <h2>${station.nom_amenageur || "Nom inconnu"}</h2>
             <div id="visuels" class="visuels-station-container">
                 <img class="img-photo" src="${visuels.photo}" alt="Photo">
@@ -129,5 +186,11 @@ export const activerEcouteurs = () => {
                 <p><strong>Nombre de prises : </strong> ${station.nbre_pdc || "—"}</p>
                 <p><strong>Puissance :</strong> ${station.tranche_puissance || "—"}</p>
             </div>`;
-    });
+        });
+};
+
+export const initialiser = async () => {
+    const liste = await toutesLesDonnees();
+    afficherListeStations(liste || []);
+    activerEcouteurs();
 };
