@@ -2,17 +2,24 @@
    1. VARIABLES & PALETTE DE COULEURS
    ========================================================================== */
 :root {
-  --gradient-page: linear-gradient(135deg, #14418A 0%, #2B2D71 45%, #43256E 100%);
-  --gradient-panel: linear-gradient(135deg, #43256E 0%, #33295F 100%);
+  --gradient-page: linear-gradient(135deg, #0A1F8F 0%, #7A1FD6 45%, #C21FA8 100%);
+  --gradient-panel: linear-gradient(135deg, #6D1FD6 0%, #3F1F9E 100%);
 
-  --accent-blue: #256DFF;
-  --accent-pink: #FF6AA8;
+  --accent-blue: #3D8BFF;
+  --accent-pink: #FF3FB0;
   --accent-green: #39FF14;
-  --accent-yellow: #FFDE00;
+  --accent-yellow: #FFE600;
 
   --text-main: #F5F5F5;
   --text-secondary: #C4C7D2;
   --radius: 18px;
+
+  /* Effet verre (glassmorphism) */
+  --glass-blur: 18px;
+  --glass-border: rgba(255, 63, 176, 0.28);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+  --glass-glow: 0 0 28px rgba(61, 139, 255, 0.25), 0 0 42px rgba(255, 63, 176, 0.18);
+  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 * {
@@ -36,11 +43,17 @@ body {
 
 
 
+
 /* ==========================================================================
    2. EN-TÊTE
    ========================================================================== */
 .header {
-  background: #24294F;
+  background: rgba(36, 41, 79, 0.45);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  box-shadow: var(--glass-shadow), var(--glass-glow), var(--glass-highlight);
   padding: 20px 30px;
   margin-bottom: 24px;
 }
@@ -64,7 +77,12 @@ body {
 /* --- PANNEAU DE GAUCHE (DÉTAILS) --- */
 .main-station {
   flex: 1.4;
-  background: var(--gradient-panel);
+  background: linear-gradient(135deg, rgba(109, 31, 214, 0.5) 0%, rgba(63, 31, 158, 0.45) 100%);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  box-shadow: var(--glass-shadow), var(--glass-glow), var(--glass-highlight);
   padding: 25px;
 }
 
@@ -73,33 +91,39 @@ body {
   margin-bottom: 20px;
 }
 
-/* Zone des Visuels de Gauche (Image 80% / Logo 20%) */
-.visuels-station {
-  display: flex;
-  gap: 15px;
+/* Zone des Visuels de Gauche — logo incrusté dans le coin de la photo */
+.visuels-station-container {
+  position: relative;
   margin-bottom: 25px;
-  height: 220px;
+  height: 350px;
 }
 
-/* Verrouillage strict de l'image et du logo à gauche */
+/* Photo en plein cadre */
 .img-photo {
-  flex: 8;
-  width: 80%;
+  width: 100%;
   height: 100%;
   object-fit: cover;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+/* Logo incrusté en badge dans le coin inférieur droit de la photo */
 .img-logo {
-  flex: 2;
-  width: 20%;
-  height: 100%;
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  width: 18%;
+  max-width: 72px;
+  height: auto;
+  aspect-ratio: 1 / 1;
   object-fit: contain;
-  background-color: rgba(0, 0, 0, 0.3);
-  padding: 12px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background-color: rgba(20, 20, 25, 0.7);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  padding: 8px;
+  border-radius: 10px;
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
 }
 
 .main-station p {
@@ -123,7 +147,12 @@ body {
 }
 
 .filtres {
-  background: rgba(41, 51, 70, 0.6);
+  background: rgba(61, 139, 255, 0.14);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  box-shadow: var(--glass-shadow), var(--glass-glow), var(--glass-highlight);
   padding: 20px;
 }
 
@@ -140,8 +169,10 @@ body {
 .filtres-gestion input, .filtres-gestion select {
   flex: 1;
   padding: 12px;
-  background: rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 8px;
   font-size: 0.95rem;
   color: white;
@@ -154,6 +185,8 @@ body {
 
 /* --- LISTE DÉROULANTE INTERNAL --- */
 .stations-liste {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
   flex-grow: 1;
   overflow-y: auto;
   padding-right: 6px;
@@ -162,12 +195,17 @@ body {
   gap: 12px;
 }
 
+
+
 /* Cible la classe .carte injectée par utils.js */
 .carte {
-  background: rgba(31, 32, 37, 0.85);
+  background: rgba(31, 32, 37, 0.45);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   padding: 16px;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-highlight);
   cursor: pointer;
   transition: all 0.2s ease-in-out;
   border-left: 5px solid transparent;
@@ -175,7 +213,8 @@ body {
 
 .carte:hover {
   transform: translateY(-2px);
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: var(--glass-glow);
 }
 
 .carte h3 {
@@ -210,13 +249,13 @@ body {
    4. BORDURES NÉONS
    ========================================================================== */
 .bord-0 { border-left-color: var(--accent-pink); }
-.bord-0:hover { box-shadow: 0 0 12px rgba(255, 106, 168, 0.2); }
+.bord-0:hover { box-shadow: var(--glass-glow), 0 0 16px rgba(255, 63, 176, 0.4); }
 
 .bord-1 { border-left-color: var(--accent-green); }
-.bord-1:hover { box-shadow: 0 0 12px rgba(57, 255, 20, 0.2); }
+.bord-1:hover { box-shadow: var(--glass-glow), 0 0 16px rgba(57, 255, 20, 0.35); }
 
 .bord-2 { border-left-color: var(--accent-yellow); }
-.bord-2:hover { box-shadow: 0 0 12px rgba(255, 222, 0, 0.2); }
+.bord-2:hover { box-shadow: var(--glass-glow), 0 0 16px rgba(255, 230, 0, 0.35); }
 
 /* ==========================================================================
    5. CARTOGRAPHIE & SCROLLBAR
@@ -225,6 +264,9 @@ body {
   width: 100%;
   height: 380px;
   overflow: hidden;
+  border-radius: var(--radius);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
 }
 
 .carte-incrustation iframe {
@@ -237,6 +279,5 @@ body {
 @media (max-width: 950px) {
   .stations-cartes { flex-direction: column; }
   .stations-droite { max-height: 450px; }
-  .visuels-station-container { height: auto; flex-direction: column; }
-  .img-photo, .img-logo { width: 100%; height: 180px; flex: none; }
+  .visuels-station-container { height: 180px; }
 }
