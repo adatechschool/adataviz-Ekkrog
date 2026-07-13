@@ -1,4 +1,4 @@
-import { obtenirVisuels, filtrerStations, obtenirStationParIndex } from "./utils.js";
+import { toutesLesDonnees, obtenirVisuels, filtrerStations, obtenirStationParIndex } from "./utils.js";
 
 let stationsUniques = [];
 let stationsAffichees = [];
@@ -69,8 +69,9 @@ export const gererClicListeStations = (event) => {
 // point de départ de la page au chargement
 export const initialiser = async () => {
     const liste = await toutesLesDonnees();
-    afficherListeStations(liste || []);
-    return liste;
+    stationsUniques= (liste || []);
+    afficherListeStations(stationsUniques);
+    return stationsUniques;
 };
 
 export const filtrerEtAfficher = () => {
