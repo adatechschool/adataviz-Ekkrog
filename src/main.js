@@ -1,11 +1,7 @@
-import { toutesLesDonnees, obtenirVisuels, filtrerStations, obtenirStationParIndex } from "./utils.js";
+import { toutesLesDonnees, obtenirVisuels, filtrerStations, obtenirStationParIndex, arrondirPuissance } from "./utils.js";
 
 let stationsUniques = [];
 let stationsAffichees = [];
-
-/* ============================================================
-    Fonction principale appelée au chargement pour récupérer l'API
-============================================================ */
 
 /* ==========================================================
                     Fonction réutilisable

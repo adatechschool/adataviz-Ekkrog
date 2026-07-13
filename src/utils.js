@@ -1,11 +1,3 @@
-/* ==========================================================
-   Ce fichier ne contient QUE des fonctions pures :
-   pas de DOM, pas de fetch, pas d'état mutable de module.
-   Elles sont donc testables uniquement avec
-   describe/it/expect().toBe()/toEqual(), sans vi.fn()
-   ni beforeEach de manipulation du DOM.
-============================================================ */
-
 // Configuration centrale pour simplifier les conditions de la fonction obtenirVisuels
 export const visuels = {
     totem: {
@@ -33,19 +25,18 @@ export const visuels = {
 
 // POUR AVOIR + de DATA :
     // Utilise la pagination (offset) car l'API plafonne à 100 résultats par appel : on enchaîne les appels jusqu'à avoir tout récupéré.
-// stations.js
 
 // On permet d'injecter une fonction "fetchFn" personnalisée (par défaut, le fetch global)
 export const datAPI = async (fetchFn = fetch) => {
-    try {
-        const toutesLesReponses = [];
-        const tailleParPage = 100;
-        let decalage = 0;
-        let total = Infinity;
+    const toutesLesReponses = [];
+    const tailleParPage = 100;
+    let decalage = 0;
+    let total = Infinity;
 
-        while (decalage < total) {
-            const url = `https://data.paysdelaloire.fr/api/explore/v2.1/catalog/datasets/234400034_-bornes-de-recharge/records?select=nom_amenageur%2C%20adresse_station%2C%20horaires%2C%20nbre_pdc%2C%20tranche_puissance&limit=${tailleParPage}&offset=${decalage}&refine=condition_acces%3A%22Acc%C3%A8s%20libre%22&refine=horaires%3A%2224%2F7%22&refine=libelle_commune%3A%22Nantes%22`;
+    while (decalage < total) {
+        const url = `https://data.paysdelaloire.fr/api/explore/v2.1/catalog/datasets/234400034_-bornes-de-recharge/records?select=nom_amenageur%2C%20adresse_station%2C%20horaires%2C%20nbre_pdc%2C%20tranche_puissance&limit=${tailleParPage}&offset=${decalage}&refine=condition_acces%3A%22Acc%C3%A8s%20libre%22&refine=horaires%3A%2224%2F7%22&refine=libelle_commune%3A%22Nantes%22`;
 
+        try {
             // Utilise la fonction passée en paramètre
             const result = await fetchFn(url);
             const donnees = await result.json();
@@ -53,12 +44,15 @@ export const datAPI = async (fetchFn = fetch) => {
             toutesLesReponses.push(...donnees.results);
             total = donnees.total_count;
             decalage += tailleParPage;
+        } catch (error) {
+            // Si une page échoue, on arrête la pagination mais on garde
+            // tout ce qui a déjà été récupéré au lieu de tout perdre
+            console.error("Erreur lors de la récupération d'une page de stations :", error);
+            break;
         }
-
-        return { results: toutesLesReponses };
-    } catch (error) {
-        return { results: [] };
     }
+
+    return { results: toutesLesReponses };
 };
 
 // On permet de passer directement des données brutes pour éviter de dépendre de datAPI()
@@ -66,9 +60,13 @@ export const toutesLesDonnees = async (donneesBrutes) => {
     const donnees = donneesBrutes || await datAPI();
     const noDoublon = new Set();
     return donnees.results.filter((station) => {
-        const nomAmenageur = station.nom_amenageur?.trim();
-        if (!nomAmenageur || noDoublon.has(nomAmenageur)) return false;
-        noDoublon.add(nomAmenageur);
+        // NB : nom_amenageur est le nom de l'opérateur (ex: "Freshmile"),
+        // pas un identifiant de station — plusieurs stations distinctes
+        // peuvent partager le même aménageur. On déduplique donc sur
+        // l'adresse, qui identifie une station physique unique.
+        const cleUnique = station.adresse_station?.trim();
+        if (!cleUnique || noDoublon.has(cleUnique)) return false;
+        noDoublon.add(cleUnique);
         return true;
     });
 };
@@ -91,6 +89,7 @@ export const obtenirVisuels = (nom) => {
    (stationsUniques) vit maintenant dans main.js, qui doit
    toujours la passer explicitement.
 ============================================================ */
+
 export const filtrerStations = (saisie, selection, liste = []) => {
     const saisieNormalisee = (saisie || "").toLowerCase().trim();
 
@@ -132,6 +131,17 @@ export const filtrerStations = (saisie, selection, liste = []) => {
         }
 
         return matchTexte && matchPuissance;
+    });
+};
+
+export const arrondirPuissance = (valeur) => {
+    if (valeur === null || valeur === undefined || valeur === "") return valeur;
+
+    const texte = String(valeur);
+
+    return texte.replace(/\d+[.,]\d+/g, (nombreTexte) => {
+        const nombre = parseFloat(nombreTexte.replace(",", "."));
+        return Number.isInteger(nombre) ? nombre.toString() : nombreTexte;
     });
 };
 
